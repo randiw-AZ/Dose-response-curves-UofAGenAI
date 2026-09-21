@@ -1,0 +1,1212 @@
+
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+							<style>
+								body {
+									background-color: white; /* Ensure the iframe has a white background */
+								}
+
+								
+							</style>
+                        </head>
+                        <body>
+                            <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Dose–Response Curve Explorer</title>
+
+  <style>
+    /*
+      University of Arizona color palette
+      Arizona Red:  #AB0520
+      Arizona Blue: #0C234B
+    */
+
+    :root {
+      --ua-red: #AB0520;
+      --ua-blue: #0C234B;
+      --ua-medium-blue: #1E5288;
+      --ua-sky-blue: #81D3EB;
+      --ua-cool-gray: #E2E9EB;
+      --ua-white: #FFFFFF;
+      --text: #17212B;
+      --muted: #52606D;
+      --success: #2E7D32;
+      --warning-bg: #FFF4D6;
+      --focus: #F6BE00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #F6F8FA;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .dose-app {
+      width: min(1100px, calc(100% - 24px));
+      margin: 20px auto;
+      overflow: hidden;
+      background: var(--ua-white);
+      border: 1px solid #CBD5DC;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(12, 35, 75, 0.12);
+    }
+
+    .app-header {
+      padding: 24px;
+      color: var(--ua-white);
+      background: var(--ua-blue);
+      border-top: 8px solid var(--ua-red);
+    }
+
+    .app-header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.6rem, 4vw, 2.3rem);
+      line-height: 1.2;
+    }
+
+    .app-header p {
+      max-width: 850px;
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 16px 20px;
+      background: #EEF2F5;
+      border-bottom: 1px solid #CBD5DC;
+    }
+
+    .tab-button {
+      min-height: 44px;
+      padding: 10px 16px;
+      color: var(--ua-blue);
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--ua-white);
+      border: 2px solid var(--ua-blue);
+      border-radius: 8px;
+    }
+
+    .tab-button:hover {
+      background: #E8F1F7;
+    }
+
+    .tab-button[aria-selected="true"] {
+      color: var(--ua-white);
+      background: var(--ua-red);
+      border-color: var(--ua-red);
+    }
+
+    .tab-button:focus-visible,
+    .reset-button:focus-visible,
+    .check-button:focus-visible,
+    input:focus-visible {
+      outline: 4px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .tab-panel {
+      padding: clamp(16px, 3vw, 28px);
+    }
+
+    .tab-panel[hidden] {
+      display: none;
+    }
+
+    .intro-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(230px, 0.75fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .instructions {
+      padding: 16px;
+      background: #EDF6FA;
+      border-left: 6px solid var(--ua-medium-blue);
+      border-radius: 8px;
+    }
+
+    .instructions h2 {
+      margin: 0 0 6px;
+      color: var(--ua-blue);
+      font-size: 1.25rem;
+    }
+
+    .instructions p {
+      margin: 0;
+    }
+
+    .key-concept {
+      padding: 16px;
+      background: var(--warning-bg);
+      border: 1px solid #E7C665;
+      border-radius: 8px;
+    }
+
+    .key-concept strong {
+      color: var(--ua-red);
+    }
+
+    .graph-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(235px, 0.75fr);
+      gap: 20px;
+      margin-top: 20px;
+      align-items: start;
+    }
+
+    .graph-card {
+      min-width: 0;
+      padding: 12px;
+      background: var(--ua-white);
+      border: 1px solid #CBD5DC;
+      border-radius: 10px;
+    }
+
+    .dose-graph {
+      display: block;
+      width: 100%;
+      height: auto;
+      min-height: 320px;
+    }
+
+    .control-card {
+      padding: 18px;
+      background: #F7F9FA;
+      border: 1px solid #CBD5DC;
+      border-radius: 10px;
+    }
+
+    .control-card h3 {
+      margin: 0 0 12px;
+      color: var(--ua-blue);
+    }
+
+    .concentration-display {
+      margin: 8px 0 14px;
+      color: var(--ua-red);
+      font-size: 1.45rem;
+      font-weight: 700;
+    }
+
+    .slider {
+      width: 100%;
+      min-height: 36px;
+      accent-color: var(--ua-red);
+      cursor: pointer;
+    }
+
+    .slider-scale {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .reset-button,
+    .check-button {
+      min-height: 44px;
+      margin-top: 14px;
+      padding: 9px 15px;
+      color: var(--ua-white);
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--ua-blue);
+      border: 0;
+      border-radius: 7px;
+    }
+
+    .reset-button:hover,
+    .check-button:hover {
+      background: var(--ua-medium-blue);
+    }
+
+    .results {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .result-card {
+      padding: 13px;
+      background: var(--ua-white);
+      border: 1px solid #CBD5DC;
+      border-left: 7px solid var(--card-color, var(--ua-red));
+      border-radius: 8px;
+    }
+
+    .result-card h4 {
+      margin: 0 0 5px;
+      color: var(--ua-blue);
+      font-size: 1rem;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .result-value {
+      font-weight: 700;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      margin: 4px 0 12px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .legend li {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .legend-line {
+      width: 28px;
+      height: 5px;
+      background: var(--legend-color);
+      border-radius: 5px;
+    }
+
+    .equation-box {
+      margin-top: 20px;
+      padding: 16px;
+      text-align: center;
+      background: #F3F5F7;
+      border: 1px solid #CBD5DC;
+      border-radius: 8px;
+    }
+
+    .equation {
+      display: inline-block;
+      margin: 6px 0;
+      color: var(--ua-blue);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .knowledge-check {
+      margin-top: 22px;
+      padding: 18px;
+      background: #FAFBFC;
+      border: 2px solid var(--ua-medium-blue);
+      border-radius: 10px;
+    }
+
+    .knowledge-check h3 {
+      margin-top: 0;
+      color: var(--ua-blue);
+    }
+
+    .knowledge-check fieldset {
+      padding: 0;
+      border: 0;
+    }
+
+    .knowledge-check legend {
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .answer-option {
+      display: block;
+      margin: 9px 0;
+      padding: 8px;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    .answer-option:hover {
+      background: #EAF2F7;
+    }
+
+    .quiz-feedback {
+      min-height: 26px;
+      margin: 12px 0 0;
+      padding: 10px;
+      font-weight: 700;
+      border-radius: 6px;
+    }
+
+    .quiz-feedback:empty {
+      display: none;
+    }
+
+    .quiz-feedback.correct {
+      color: #185B1B;
+      background: #E6F4E7;
+      border-left: 5px solid var(--success);
+    }
+
+    .quiz-feedback.incorrect {
+      color: #7A1020;
+      background: #FCE8EB;
+      border-left: 5px solid var(--ua-red);
+    }
+
+    .app-footer {
+      padding: 16px 22px;
+      color: var(--ua-white);
+      background: var(--ua-blue);
+      font-size: 0.9rem;
+    }
+
+    .app-footer p {
+      margin: 4px 0;
+    }
+
+    @media (max-width: 800px) {
+      .intro-grid,
+      .graph-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .dose-graph {
+        min-height: 280px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .dose-app {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+      }
+
+      .tabs {
+        padding: 12px;
+      }
+
+      .tab-button {
+        flex: 1 1 100%;
+      }
+
+      .result-row {
+        display: block;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="dose-app" id="dose-response-app">
+    <header class="app-header">
+      <h1>Dose–Response Curve Explorer</h1>
+      <p>
+        Move the concentration sliders to investigate how hormone concentration,
+        response, EC50, and agonist potency are related.
+      </p>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Dose-response activities">
+      <button
+        class="tab-button"
+        id="single-tab"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        aria-controls="single-panel"
+        tabindex="0">
+        1. Single Curve
+      </button>
+
+      <button
+        class="tab-button"
+        id="comparison-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="comparison-panel"
+        tabindex="-1">
+        2. Compare Potency
+      </button>
+    </nav>
+
+    <!-- Activity 1 -->
+    <section
+      class="tab-panel"
+      id="single-panel"
+      role="tabpanel"
+      aria-labelledby="single-tab">
+
+      <div class="intro-grid">
+        <div class="instructions">
+          <h2>Explore one dose–response curve</h2>
+          <p>
+            Move the slider from low to high concentrations. The marker follows
+            the curve and shows the predicted response at the selected concentration.
+          </p>
+        </div>
+
+        <aside class="key-concept">
+          <strong>EC50:</strong> The concentration that produces 50% of the
+          maximum response. In this example, the hormone EC50 is 10 nM.
+        </aside>
+      </div>
+
+      <div class="graph-layout">
+        <div class="graph-card">
+          <svg
+            id="single-graph"
+            class="dose-graph"
+            viewBox="0 0 760 430"
+            role="img"
+            aria-labelledby="single-graph-title single-graph-desc">
+            <title id="single-graph-title">Hormone dose-response curve</title>
+            <desc id="single-graph-desc">
+              A sigmoidal dose-response curve showing response as hormone
+              concentration increases on a logarithmic concentration scale.
+            </desc>
+          </svg>
+        </div>
+
+        <aside class="control-card">
+          <h3>Selected hormone concentration</h3>
+
+          <label for="single-slider">
+            Move along the logarithmic concentration scale:
+          </label>
+
+          <div
+            class="concentration-display"
+            id="single-concentration"
+            aria-live="polite">
+            1 nM
+          </div>
+
+          <input
+            class="slider"
+            id="single-slider"
+            type="range"
+            min="-2"
+            max="3"
+            step="0.01"
+            value="0"
+            aria-describedby="single-scale-description">
+
+          <div class="slider-scale" aria-hidden="true">
+            <span>0.01 nM</span>
+            <span>1,000 nM</span>
+          </div>
+
+          <p id="single-scale-description">
+            Concentrations increase logarithmically from 0.01 to 1,000 nM.
+          </p>
+
+          <div class="results">
+            <div class="result-card" style="--card-color: #AB0520;">
+              <h4>Hormone</h4>
+              <div class="result-row">
+                <span>Response:</span>
+                <span class="result-value" id="single-response">9.1%</span>
+              </div>
+              <div class="result-row">
+                <span>EC50:</span>
+                <span class="result-value">10 nM</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="reset-button" id="single-reset" type="button">
+            Reset concentration
+          </button>
+        </aside>
+      </div>
+
+      <div class="equation-box">
+        <strong>Model used:</strong><br>
+        <span class="equation">
+          Response (%) = 100 × concentration ÷ (EC50 + concentration)
+        </span>
+        <div>
+          At concentration = EC50, the response is 50%.
+        </div>
+      </div>
+    </section>
+
+    <!-- Activity 2 -->
+    <section
+      class="tab-panel"
+      id="comparison-panel"
+      role="tabpanel"
+      aria-labelledby="comparison-tab"
+      hidden>
+
+      <div class="intro-grid">
+        <div class="instructions">
+          <h2>Compare agonist potency</h2>
+          <p>
+            The same concentration is applied to all three agonists. Move the
+            slider and compare their responses and EC50 values.
+          </p>
+        </div>
+
+        <aside class="key-concept">
+          <strong>Potency rule:</strong> A lower EC50 indicates greater potency.
+          A higher EC50 indicates lower potency.
+        </aside>
+      </div>
+
+      <div class="graph-layout">
+        <div class="graph-card">
+          <ul class="legend" aria-label="Graph legend">
+            <li>
+              <span class="legend-line" style="--legend-color: #1E5288;"></span>
+              More-potent agonist
+            </li>
+            <li>
+              <span class="legend-line" style="--legend-color: #AB0520;"></span>
+              Hormone
+            </li>
+            <li>
+              <span class="legend-line" style="--legend-color: #0C234B;"></span>
+              Less-potent agonist
+            </li>
+          </ul>
+
+          <svg
+            id="comparison-graph"
+            class="dose-graph"
+            viewBox="0 0 760 430"
+            role="img"
+            aria-labelledby="comparison-graph-title comparison-graph-desc">
+            <title id="comparison-graph-title">
+              Comparison of three dose-response curves
+            </title>
+            <desc id="comparison-graph-desc">
+              Three dose-response curves with different EC50 values but the same
+              maximum response. The more-potent agonist is shifted left, and the
+              less-potent agonist is shifted right.
+            </desc>
+          </svg>
+        </div>
+
+        <aside class="control-card">
+          <h3>Selected concentration</h3>
+
+          <label for="comparison-slider">
+            Apply this concentration to all three agonists:
+          </label>
+
+          <div
+            class="concentration-display"
+            id="comparison-concentration"
+            aria-live="polite">
+            10 nM
+          </div>
+
+          <input
+            class="slider"
+            id="comparison-slider"
+            type="range"
+            min="-2"
+            max="3"
+            step="0.01"
+            value="1"
+            aria-describedby="comparison-scale-description">
+
+          <div class="slider-scale" aria-hidden="true">
+            <span>0.01 nM</span>
+            <span>1,000 nM</span>
+          </div>
+
+          <p id="comparison-scale-description">
+            Notice that the curves reach 50% response at different concentrations.
+          </p>
+
+          <div class="results" aria-live="polite">
+            <div class="result-card" style="--card-color: #1E5288;">
+              <h4>More-potent agonist</h4>
+              <div class="result-row">
+                <span>Response:</span>
+                <span class="result-value" id="potent-response">90.9%</span>
+              </div>
+              <div class="result-row">
+                <span>EC50:</span>
+                <span class="result-value">1 nM</span>
+              </div>
+            </div>
+
+            <div class="result-card" style="--card-color: #AB0520;">
+              <h4>Hormone</h4>
+              <div class="result-row">
+                <span>Response:</span>
+                <span class="result-value" id="hormone-response">50.0%</span>
+              </div>
+              <div class="result-row">
+                <span>EC50:</span>
+                <span class="result-value">10 nM</span>
+              </div>
+            </div>
+
+            <div class="result-card" style="--card-color: #0C234B;">
+              <h4>Less-potent agonist</h4>
+              <div class="result-row">
+                <span>Response:</span>
+                <span class="result-value" id="less-potent-response">9.1%</span>
+              </div>
+              <div class="result-row">
+                <span>EC50:</span>
+                <span class="result-value">100 nM</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="reset-button" id="comparison-reset" type="button">
+            Reset concentration
+          </button>
+        </aside>
+      </div>
+
+      <div class="equation-box">
+        <strong>What should you notice?</strong>
+        <div>
+          All three agonists can produce the same 100% maximum response, but they
+          require different concentrations to do so. This is a difference in
+          <strong>potency</strong>, not maximum efficacy.
+        </div>
+      </div>
+
+      <section class="knowledge-check" aria-labelledby="quiz-title">
+        <h3 id="quiz-title">Check your understanding</h3>
+
+        <fieldset>
+          <legend>
+            Which agonist is the most potent?
+          </legend>
+
+          <label class="answer-option">
+            <input type="radio" name="potency-question" value="hormone">
+            The hormone, because its EC50 is 10 nM
+          </label>
+
+          <label class="answer-option">
+            <input type="radio" name="potency-question" value="more">
+            The more-potent agonist, because its EC50 is 1 nM
+          </label>
+
+          <label class="answer-option">
+            <input type="radio" name="potency-question" value="less">
+            The less-potent agonist, because its EC50 is 100 nM
+          </label>
+        </fieldset>
+
+        <button class="check-button" id="check-answer" type="button">
+          Check answer
+        </button>
+
+        <p
+          class="quiz-feedback"
+          id="quiz-feedback"
+          role="status"
+          aria-live="polite"></p>
+      </section>
+    </section>
+
+    <footer class="app-footer">
+      <p>
+        <strong>Reminder:</strong> Lower EC50 = greater potency; higher EC50 = lower potency.
+      </p>
+      <p>
+        This teaching model assumes a Hill slope of 1 and a maximum response of 100%.
+      </p>
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const SVG_NS = "http://www.w3.org/2000/svg";
+
+      const graphSettings = {
+        width: 760,
+        height: 430,
+        margin: {
+          top: 24,
+          right: 26,
+          bottom: 68,
+          left: 78
+        },
+        minimumLog: -2,
+        maximumLog: 3
+      };
+
+      const singleModel = [
+        {
+          name: "Hormone",
+          ec50: 10,
+          color: "#AB0520"
+        }
+      ];
+
+      const comparisonModels = [
+        {
+          name: "More-potent agonist",
+          ec50: 1,
+          color: "#1E5288"
+        },
+        {
+          name: "Hormone",
+          ec50: 10,
+          color: "#AB0520"
+        },
+        {
+          name: "Less-potent agonist",
+          ec50: 100,
+          color: "#0C234B"
+        }
+      ];
+
+      const singleSlider = document.getElementById("single-slider");
+      const comparisonSlider = document.getElementById("comparison-slider");
+
+      function responseAt(concentration, ec50) {
+        return 100 * concentration / (ec50 + concentration);
+      }
+
+      function createSvgElement(tag, attributes, text) {
+        const element = document.createElementNS(SVG_NS, tag);
+
+        Object.keys(attributes || {}).forEach(function (key) {
+          element.setAttribute(key, attributes[key]);
+        });
+
+        if (typeof text !== "undefined") {
+          element.textContent = text;
+        }
+
+        return element;
+      }
+
+      function formatConcentration(value) {
+        if (value >= 100) {
+          return Math.round(value).toLocaleString() + " nM";
+        }
+
+        if (value >= 10) {
+          return value.toFixed(1).replace(/\.0$/, "") + " nM";
+        }
+
+        if (value >= 1) {
+          return value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "") + " nM";
+        }
+
+        return value.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") + " nM";
+      }
+
+      function xPosition(logConcentration) {
+        const settings = graphSettings;
+        const graphWidth =
+          settings.width - settings.margin.left - settings.margin.right;
+
+        return settings.margin.left +
+          ((logConcentration - settings.minimumLog) /
+          (settings.maximumLog - settings.minimumLog)) * graphWidth;
+      }
+
+      function yPosition(response) {
+        const settings = graphSettings;
+        const graphHeight =
+          settings.height - settings.margin.top - settings.margin.bottom;
+
+        return settings.margin.top + graphHeight -
+          (response / 100) * graphHeight;
+      }
+
+      function drawGraph(svg, models, concentration) {
+        const settings = graphSettings;
+        const left = settings.margin.left;
+        const right = settings.width - settings.margin.right;
+        const top = settings.margin.top;
+        const bottom = settings.height - settings.margin.bottom;
+
+        while (svg.firstChild) {
+          svg.removeChild(svg.firstChild);
+        }
+
+        svg.appendChild(createSvgElement("title", {},
+          models.length === 1
+            ? "Single hormone dose-response curve"
+            : "Comparison of agonist dose-response curves"
+        ));
+
+        svg.appendChild(createSvgElement("rect", {
+          x: left,
+          y: top,
+          width: right - left,
+          height: bottom - top,
+          fill: "#FFFFFF",
+          stroke: "#CBD5DC"
+        }));
+
+        // Horizontal gridlines and response labels
+        [0, 25, 50, 75, 100].forEach(function (tick) {
+          const y = yPosition(tick);
+
+          svg.appendChild(createSvgElement("line", {
+            x1: left,
+            y1: y,
+            x2: right,
+            y2: y,
+            stroke: tick === 50 ? "#AB0520" : "#D9E0E5",
+            "stroke-width": tick === 50 ? "1.5" : "1",
+            "stroke-dasharray": tick === 50 ? "7 6" : "0"
+          }));
+
+          svg.appendChild(createSvgElement("text", {
+            x: left - 12,
+            y: y + 5,
+            "text-anchor": "end",
+            fill: "#354553",
+            "font-size": "14"
+          }, tick + "%"));
+        });
+
+        // X-axis ticks for logarithmic concentrations
+        [-2, -1, 0, 1, 2, 3].forEach(function (tick) {
+          const x = xPosition(tick);
+          const concentrationLabel = Math.pow(10, tick);
+
+          svg.appendChild(createSvgElement("line", {
+            x1: x,
+            y1: top,
+            x2: x,
+            y2: bottom,
+            stroke: "#E4E9ED",
+            "stroke-width": "1"
+          }));
+
+          svg.appendChild(createSvgElement("text", {
+            x: x,
+            y: bottom + 24,
+            "text-anchor": "middle",
+            fill: "#354553",
+            "font-size": "13"
+          }, concentrationLabel.toLocaleString()));
+        });
+
+        // Axes
+        svg.appendChild(createSvgElement("line", {
+          x1: left,
+          y1: bottom,
+          x2: right,
+          y2: bottom,
+          stroke: "#0C234B",
+          "stroke-width": "2"
+        }));
+
+        svg.appendChild(createSvgElement("line", {
+          x1: left,
+          y1: top,
+          x2: left,
+          y2: bottom,
+          stroke: "#0C234B",
+          "stroke-width": "2"
+        }));
+
+        // Axis labels
+        svg.appendChild(createSvgElement("text", {
+          x: (left + right) / 2,
+          y: settings.height - 17,
+          "text-anchor": "middle",
+          fill: "#0C234B",
+          "font-size": "16",
+          "font-weight": "700"
+        }, "Agonist concentration (nM, logarithmic scale)"));
+
+        svg.appendChild(createSvgElement("text", {
+          x: 21,
+          y: (top + bottom) / 2,
+          transform: "rotate(-90 21 " + ((top + bottom) / 2) + ")",
+          "text-anchor": "middle",
+          fill: "#0C234B",
+          "font-size": "16",
+          "font-weight": "700"
+        }, "Response (% of maximum)"));
+
+        // Draw each curve and its EC50 indicator
+        models.forEach(function (model) {
+          const ec50X = xPosition(Math.log10(model.ec50));
+          const ec50Y = yPosition(50);
+
+          svg.appendChild(createSvgElement("line", {
+            x1: ec50X,
+            y1: bottom,
+            x2: ec50X,
+            y2: ec50Y,
+            stroke: model.color,
+            "stroke-width": "2",
+            "stroke-dasharray": "5 5",
+            opacity: "0.55"
+          }));
+
+          svg.appendChild(createSvgElement("circle", {
+            cx: ec50X,
+            cy: ec50Y,
+            r: "5.5",
+            fill: "#FFFFFF",
+            stroke: model.color,
+            "stroke-width": "3"
+          }));
+
+          let pathData = "";
+
+          for (let index = 0; index <= 240; index += 1) {
+            const logConcentration =
+              settings.minimumLog +
+              (index / 240) *
+              (settings.maximumLog - settings.minimumLog);
+
+            const testConcentration = Math.pow(10, logConcentration);
+            const testResponse = responseAt(testConcentration, model.ec50);
+
+            const x = xPosition(logConcentration);
+            const y = yPosition(testResponse);
+
+            pathData += (index === 0 ? "M" : "L") + x + " " + y + " ";
+          }
+
+          svg.appendChild(createSvgElement("path", {
+            d: pathData,
+            fill: "none",
+            stroke: model.color,
+            "stroke-width": "5",
+            "stroke-linecap": "round",
+            "stroke-linejoin": "round"
+          }));
+
+          const selectedX = xPosition(Math.log10(concentration));
+          const selectedY = yPosition(responseAt(concentration, model.ec50));
+
+          const marker = createSvgElement("circle", {
+            cx: selectedX,
+            cy: selectedY,
+            r: "8",
+            fill: model.color,
+            stroke: "#FFFFFF",
+            "stroke-width": "3"
+          });
+
+          marker.appendChild(createSvgElement("title", {},
+            model.name + ": " +
+            responseAt(concentration, model.ec50).toFixed(1) +
+            "% response at " +
+            formatConcentration(concentration)
+          ));
+
+          svg.appendChild(marker);
+        });
+      }
+
+      function updateSingleActivity() {
+        const concentration = Math.pow(10, Number(singleSlider.value));
+        const response = responseAt(concentration, singleModel[0].ec50);
+
+        document.getElementById("single-concentration").textContent =
+          formatConcentration(concentration);
+
+        document.getElementById("single-response").textContent =
+          response.toFixed(1) + "%";
+
+        singleSlider.setAttribute(
+          "aria-valuetext",
+          formatConcentration(concentration) +
+          ", producing " +
+          response.toFixed(1) +
+          "% response"
+        );
+
+        drawGraph(
+          document.getElementById("single-graph"),
+          singleModel,
+          concentration
+        );
+      }
+
+      function updateComparisonActivity() {
+        const concentration = Math.pow(10, Number(comparisonSlider.value));
+
+        const potentResponse =
+          responseAt(concentration, comparisonModels[0].ec50);
+
+        const hormoneResponse =
+          responseAt(concentration, comparisonModels[1].ec50);
+
+        const lessPotentResponse =
+          responseAt(concentration, comparisonModels[2].ec50);
+
+        document.getElementById("comparison-concentration").textContent =
+          formatConcentration(concentration);
+
+        document.getElementById("potent-response").textContent =
+          potentResponse.toFixed(1) + "%";
+
+        document.getElementById("hormone-response").textContent =
+          hormoneResponse.toFixed(1) + "%";
+
+        document.getElementById("less-potent-response").textContent =
+          lessPotentResponse.toFixed(1) + "%";
+
+        comparisonSlider.setAttribute(
+          "aria-valuetext",
+          formatConcentration(concentration) +
+          ". More-potent agonist response " +
+          potentResponse.toFixed(1) +
+          "%. Hormone response " +
+          hormoneResponse.toFixed(1) +
+          "%. Less-potent agonist response " +
+          lessPotentResponse.toFixed(1) +
+          "%."
+        );
+
+        drawGraph(
+          document.getElementById("comparison-graph"),
+          comparisonModels,
+          concentration
+        );
+      }
+
+      // Slider interactions
+      singleSlider.addEventListener("input", updateSingleActivity);
+      comparisonSlider.addEventListener("input", updateComparisonActivity);
+
+      document.getElementById("single-reset").addEventListener("click", function () {
+        singleSlider.value = "0";
+        updateSingleActivity();
+        singleSlider.focus();
+      });
+
+      document.getElementById("comparison-reset").addEventListener("click", function () {
+        comparisonSlider.value = "1";
+        updateComparisonActivity();
+        comparisonSlider.focus();
+      });
+
+      // Accessible tab behavior
+      const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+
+      function activateTab(selectedTab) {
+        tabs.forEach(function (tab) {
+          const isSelected = tab === selectedTab;
+          const panel = document.getElementById(
+            tab.getAttribute("aria-controls")
+          );
+
+          tab.setAttribute("aria-selected", String(isSelected));
+          tab.setAttribute("tabindex", isSelected ? "0" : "-1");
+          panel.hidden = !isSelected;
+        });
+
+        if (selectedTab.id === "comparison-tab") {
+          updateComparisonActivity();
+        } else {
+          updateSingleActivity();
+        }
+      }
+
+      tabs.forEach(function (tab, index) {
+        tab.addEventListener("click", function () {
+          activateTab(tab);
+        });
+
+        tab.addEventListener("keydown", function (event) {
+          let nextIndex = index;
+
+          if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+            nextIndex = (index + 1) % tabs.length;
+          } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+            nextIndex = (index - 1 + tabs.length) % tabs.length;
+          } else if (event.key === "Home") {
+            nextIndex = 0;
+          } else if (event.key === "End") {
+            nextIndex = tabs.length - 1;
+          } else {
+            return;
+          }
+
+          event.preventDefault();
+          activateTab(tabs[nextIndex]);
+          tabs[nextIndex].focus();
+        });
+      });
+
+      // Knowledge check
+      document.getElementById("check-answer").addEventListener("click", function () {
+        const selectedAnswer = document.querySelector(
+          'input[name="potency-question"]:checked'
+        );
+
+        const feedback = document.getElementById("quiz-feedback");
+        feedback.classList.remove("correct", "incorrect");
+
+        if (!selectedAnswer) {
+          feedback.textContent = "Select an answer before checking.";
+          feedback.classList.add("incorrect");
+          return;
+        }
+
+        if (selectedAnswer.value === "more") {
+          feedback.textContent =
+            "Correct! The 1 nM EC50 is the lowest EC50, so this agonist is the most potent.";
+          feedback.classList.add("correct");
+        } else {
+          feedback.textContent =
+            "Not quite. Greater potency means a lower concentration is needed for a 50% response. Look for the lowest EC50.";
+          feedback.classList.add("incorrect");
+        }
+      });
+
+      // Initial rendering
+      updateSingleActivity();
+      updateComparisonActivity();
+    }());
+  </script>
+</body>
+</html>
+
+							<script>
+                            	
+							</script>
+                        </body>
+                        </html>
+                    
